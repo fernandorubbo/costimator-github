@@ -5,6 +5,9 @@ steps:
   args: 
     - '-c'
     - |
+    
+      set -x
+    
       echo ""
       echo "*************************************************************************"
       echo "** Checking out '$_BASE_BRANCH' branch ..."
