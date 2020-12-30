@@ -5,10 +5,6 @@ steps:
   args: 
     - '-c'
     - |
-    
-      set -x
-      set -e
-    
       echo ""
       echo "*************************************************************************"
       echo "** Checking out '$_BASE_BRANCH' branch ..."
@@ -24,34 +20,26 @@ steps:
       echo "*************************************************************************"
       echo "** Estimating cost difference between current and previous versions..."
       echo "*************************************************************************"
-      costimator --k8s-path wordpress --k8s-prev-path previous/wordpress --output-filepath output.json --output-format=GITHUB 
+      costimator --k8s-path wordpress --k8s-prev-path previous/wordpress --output-filepath output.json --output-format=GITHUB
 
       echo ""
       echo "***************************************************************************************************************"
-      echo "** Updating Merge Request 'repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER' ..."
+      echo "** Updating Merge Request 'projects/$CI_MERGE_REQUEST_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID' ..."
       echo "***************************************************************************************************************"          
-
-
-      TEST="TESTED"
-      echo "TEST2: $$TEST -------"
-
-
-      # curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "$(cat output.json)" https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments
-      
+      curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "$(cat output.json)" https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments
       
       COST_USD_THRESHOLD=10
       POSSIBLY_COST_INCREASE=$(cat output.diff | jq ".summary.maxDiff.usd")
-      echo "------------------- $$POSSIBLY_COST_INCREASE > $$COST_USD_THRESHOLD -----------------"
       if (( $(echo "$$POSSIBLY_COST_INCREASE > $$COST_USD_THRESHOLD" | bc -l) ))
         then
           echo ""
           echo "****************************************************************************************"
-          echo "** Possible cost increase bigger than \$$COST_USD_THRESHOLD USD detected. Requesting FinOps approval ..."
+          echo "** Possible cost increase bigger than \$$$COST_USD_THRESHOLD USD detected. Requesting FinOps approval ..."
           echo "****************************************************************************************"    
           curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"  https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/requested_reviewers
         else
           echo ""
           echo "****************************************************************************************************************"
-          echo "** No cost increase bigger than \$$COST_USD_THRESHOLD USD detected. FinOps approval is NOT required in this situation!"
+          echo "** No cost increase bigger than \$$$COST_USD_THRESHOLD USD detected. FinOps approval is NOT required in this situation!"
           echo "****************************************************************************************************************"
       fi
