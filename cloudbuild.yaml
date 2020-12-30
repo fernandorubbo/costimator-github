@@ -6,7 +6,6 @@ steps:
     - '-c'
     - |
       set -e
-      set -x
 
       echo ""
       echo "*************************************************************************"
@@ -28,16 +27,25 @@ steps:
       echo ""
       echo "***************************************************************************************************************"
       echo "** Updating Pull Request 'repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER' ..."
-      echo "***************************************************************************************************************"          
-      CURL_RETURN=$(curl -w "\nSTATUS_CODE:%{http_code}\n" \
-        -X POST \
-        -H "Accept: application/vnd.github.v3+json" \
-        -H "Authorization: Bearer $_GITHUB_TOKEN" \
-        -d "$(cat output.json)" \
-        https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments)
-      echo $$CURL_RETURN
-      STATUS_CODE=$$([[ $$CURL_RETURN =~ [[:space:]]*STATUS_CODE:([0-9]{3}) ]] && echo $${BASH_REMATCH[1]})
-      echo $$STATUS_CODE
+      echo "***************************************************************************************************************" 
+      createObject() {
+        url=$$1
+        body=$$2
+        resp=$(curl -w "\nSTATUS_CODE:%{http_code}\n" -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d $$body  $$url)
+        httpStatusCode=$([[ $$resp =~ [[:space:]]*STATUS_CODE:([0-9]{3}) ]] && echo $${BASH_REMATCH[1]})
+        if [ $$httpStatusCode != "201" ] 
+          then
+            echo "Error creating object!"
+            echo "\- URL: $$url "
+            echo "\- BODY: $$body "
+            echo "\- RESPONSE: $$resp "
+            exit -1
+        fi
+      }
+
+      url="https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments"
+      body="$(cat output.json)"
+      createObject $$url, $$body 
 
       COST_USD_THRESHOLD=10
       POSSIBLY_COST_INCREASE=$(cat output.diff | jq ".summary.maxDiff.usd")
@@ -46,23 +54,10 @@ steps:
           echo ""
           echo "****************************************************************************************"
           echo "** Possible cost increase bigger than \$ $$COST_USD_THRESHOLD USD detected. Requesting FinOps approval ..."
-          echo "****************************************************************************************"    
-          CURL_RETURN=$(curl -w "\nSTATUS_CODE:%{http_code}\n" \
-            -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: Bearer $_GITHUB_TOKEN" \
-            -d "{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"  \
-            https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/requested_reviewers)
-          echo $$CURL_RETURN
-          STATUS_CODE=$([[ $$CURL_RETURN =~ [[:space:]]*STATUS_CODE:([0-9]{3}) ]] && echo $${BASH_REMATCH[1]})
-          echo $$STATUS_CODE
-          if [ $$STATUS_CODE != "200" ] 
-            then
-              echo "Error Requesting FinOps approval!"
-              exit -1
-          fi
-
-
+          echo "****************************************************************************************"   
+          url="https://api.github.com/repos/fernandorubbo/costimator-github/pulls/$_PR_NUMBER/requested_reviewers"
+          body="{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"
+          createObject $$url, $$body
         else
           echo ""
           echo "****************************************************************************************************************"
