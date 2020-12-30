@@ -53,10 +53,10 @@ steps:
             -H "Authorization: Bearer $_GITHUB_TOKEN" \
             -d "{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"  \
             https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/requested_reviewers)
-          echo $CURL_RETURN
-          STATUS_CODE=$([[ $CURL_RETURN =~ [[:space:]]*STATUS_CODE:([0-9]{3}) ]] && echo ${BASH_REMATCH[1]})
-          echo $STATUS_CODE
-          if [ $STATUS_CODE != "200" ] 
+          echo $$CURL_RETURN
+          STATUS_CODE=$([[ $$CURL_RETURN =~ [[:space:]]*STATUS_CODE:([0-9]{3}) ]] && echo $${BASH_REMATCH[1]})
+          echo $$STATUS_CODE
+          if [ $$STATUS_CODE != "200" ] 
             then
               echo "Error Requesting FinOps approval!"
               exit -1
