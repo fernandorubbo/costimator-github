@@ -45,7 +45,7 @@ steps:
 
       comments_url="https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments"
       comments_body="$(cat output.json)"
-      createObject $$comments_url, "$$comments_body"
+      createObject $$comments_url "$$comments_body"
 
       COST_USD_THRESHOLD=10
       POSSIBLY_COST_INCREASE=$(cat output.diff | jq ".summary.maxDiff.usd")
@@ -57,7 +57,7 @@ steps:
           echo "****************************************************************************************"   
           reviewers_url="https://api.github.com/repos/fernandorubbo/costimator-github/pulls/$_PR_NUMBER/requested_reviewers"
           reviewers_body="{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"
-          createObject $$reviewers_url, "$$reviewers_body"
+          createObject $$reviewers_url "$$reviewers_body"
         else
           echo ""
           echo "****************************************************************************************************************"
