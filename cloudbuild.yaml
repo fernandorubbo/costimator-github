@@ -27,7 +27,7 @@ steps:
       costimator --k8s-path wordpress --k8s-prev-path previous/wordpress --output-filepath output.json --output-format=GITHUB 
 
       TEST="TESTED"
-      echo "TEST1: $TEST -------"
+      echo "TEST1: $$TEST -------"
 
       echo ""
       echo "***************************************************************************************************************"
@@ -36,13 +36,13 @@ steps:
 
 
       TEST="TESTED"
-      echo "TEST2: $TEST -------"
+      echo "TEST2: $$TEST -------"
 
 
       # curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "$(cat output.json)" https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments
       
       TEST="TESTED"
-      echo "TEST3: $TEST -------"
+      echo "TEST3: $$TEST -------"
       
       
       COST_USD_THRESHOLD=10
