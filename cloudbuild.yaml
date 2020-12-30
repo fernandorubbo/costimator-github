@@ -24,7 +24,7 @@ steps:
 
       echo ""
       echo "***************************************************************************************************************"
-      echo "** Updating Merge Request 'projects/$CI_MERGE_REQUEST_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID' ..."
+      echo "** Updating Pull Request 'repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER' ..."
       echo "***************************************************************************************************************"          
       curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "$(cat output.json)" https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments
       
@@ -34,12 +34,12 @@ steps:
         then
           echo ""
           echo "****************************************************************************************"
-          echo "** Possible cost increase bigger than \$$$COST_USD_THRESHOLD USD detected. Requesting FinOps approval ..."
+          echo "** Possible cost increase bigger than \$ $$COST_USD_THRESHOLD USD detected. Requesting FinOps approval ..."
           echo "****************************************************************************************"    
           curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"  https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/requested_reviewers
         else
           echo ""
           echo "****************************************************************************************************************"
-          echo "** No cost increase bigger than \$$$COST_USD_THRESHOLD USD detected. FinOps approval is NOT required in this situation!"
+          echo "** No cost increase bigger than \$ $$COST_USD_THRESHOLD USD detected. FinOps approval is NOT required in this situation!"
           echo "****************************************************************************************************************"
       fi
