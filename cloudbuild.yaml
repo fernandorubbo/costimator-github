@@ -26,13 +26,12 @@ steps:
 
       echo ""
       echo "***************************************************************************************************************"
-      echo "** Updating Pull Request 'repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER' ..."
+      echo "** Updating Pull Request '$_PR_NUMBER' ..."
       echo "***************************************************************************************************************" 
       createObject() {
         url=$$1
         body=$$2
-        echo $$body
-        resp=$(curl -w "\nSTATUS_CODE:%{http_code}\n" -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d $$body  $$url)
+        resp=$(curl -w "\nSTATUS_CODE:%{http_code}\n" -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "$$body"  $$url)
         httpStatusCode=$([[ $$resp =~ [[:space:]]*STATUS_CODE:([0-9]{3}) ]] && echo $${BASH_REMATCH[1]})
         if [ $$httpStatusCode != "201" ] 
           then
@@ -44,10 +43,9 @@ steps:
         fi
       }
 
-      url="https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments"
-      body="$(cat output.json)"
-      echo $$body
-      createObject $$url, $$body 
+      comments_url="https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments"
+      comments_body="$(cat output.json)"
+      createObject $$comments_url, "$$comments_body"
 
       COST_USD_THRESHOLD=10
       POSSIBLY_COST_INCREASE=$(cat output.diff | jq ".summary.maxDiff.usd")
@@ -57,9 +55,9 @@ steps:
           echo "****************************************************************************************"
           echo "** Possible cost increase bigger than \$ $$COST_USD_THRESHOLD USD detected. Requesting FinOps approval ..."
           echo "****************************************************************************************"   
-          url="https://api.github.com/repos/fernandorubbo/costimator-github/pulls/$_PR_NUMBER/requested_reviewers"
-          body="{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"
-          createObject $$url, $$body
+          reviewers_url="https://api.github.com/repos/fernandorubbo/costimator-github/pulls/$_PR_NUMBER/requested_reviewers"
+          reviewers_body="{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"
+          createObject $$reviewers_url, "$$reviewers_body"
         else
           echo ""
           echo "****************************************************************************************************************"
