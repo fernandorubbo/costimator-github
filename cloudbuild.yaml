@@ -57,7 +57,7 @@ steps:
           echo "** Possible cost increase bigger than \$ $$COST_USD_THRESHOLD USD detected. Requesting FinOps approval ..."
           echo "****************************************************************************************"   
           reviewers_url="https://api.github.com/repos/fernandorubbo/costimator-github/pulls/$_PR_NUMBER/requested_reviewers"
-          reviewers_body="{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"
+          reviewers_body="{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_USER\"]}"
           createObject $$reviewers_url "$$reviewers_body"
         else
           echo ""
