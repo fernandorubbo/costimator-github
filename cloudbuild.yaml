@@ -39,7 +39,7 @@ steps:
       # curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "$(cat output.json)" https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments
       
       TEST="TESTED"
-      echo "$TEST -------
+      echo "$TEST -------"
       COST_USD_THRESHOLD=10
       POSSIBLY_COST_INCREASE=$(cat output.diff | jq ".summary.maxDiff.usd")
       echo "------------------- $POSSIBLY_COST_INCREASE > $COST_USD_THRESHOLD -----------------"
