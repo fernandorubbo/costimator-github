@@ -36,6 +36,7 @@ steps:
       
       COST_USD_THRESHOLD=10
       POSSIBLY_COST_INCREASE=$(cat output.diff | jq ".summary.maxDiff.usd")
+      echo "$POSSIBLY_COST_INCREASE > $COST_USD_THRESHOLD"
       if (( $(echo "$POSSIBLY_COST_INCREASE > $COST_USD_THRESHOLD" | bc -l) ))
         then
           echo ""
