@@ -20,12 +20,17 @@ steps:
       echo "*************************************************************************"
       echo "** Estimating cost difference between current and previous versions..."
       echo "*************************************************************************"
-      costimator --k8s-path wordpress --k8s-prev-path previous/wordpress --output-filepath output.json --output-format=GITHUB
+      costimator --k8s-path wordpress --k8s-prev-path previous/wordpress --output-filepath output.json --output-format=GITHUB --verbosity trace
 
       echo ""
       echo "***************************************************************************************************************"
       echo "** Updating Merge Request 'repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER' ..."
       echo "***************************************************************************************************************"          
+
+      ls -lt
+
+      cat output.diff
+
 
       curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "$(cat output.json)" https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments
       
