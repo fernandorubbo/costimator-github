@@ -5,6 +5,8 @@ steps:
   args: 
     - '-c'
     - |
+      set -e
+
       echo ""
       echo "*************************************************************************"
       echo "** Checking out '$_BASE_BRANCH' branch ..."
@@ -26,8 +28,16 @@ steps:
       echo "***************************************************************************************************************"
       echo "** Updating Pull Request 'repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER' ..."
       echo "***************************************************************************************************************"          
-      curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "$(cat output.json)" https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments
-      
+      CURL_RETURN=$(curl -w "\nSTATUS_CODE:%{http_code}\n" \
+        -X POST \
+        -H "Accept: application/vnd.github.v3+json" \
+        -H "Authorization: Bearer $_GITHUB_TOKEN" \
+        -d "$(cat output.json)" \
+        https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/comments)
+      echo $CURL_RETURN
+      STATUS_CODE=$([[ $CURL_RETURN =~ [[:space:]]*STATUS_CODE:([0-9]{3}) ]] && echo ${BASH_REMATCH[1]})
+      echo $STATUS_CODE
+
       COST_USD_THRESHOLD=10
       POSSIBLY_COST_INCREASE=$(cat output.diff | jq ".summary.maxDiff.usd")
       if (( $(echo "$$POSSIBLY_COST_INCREASE > $$COST_USD_THRESHOLD" | bc -l) ))
@@ -36,7 +46,22 @@ steps:
           echo "****************************************************************************************"
           echo "** Possible cost increase bigger than \$ $$COST_USD_THRESHOLD USD detected. Requesting FinOps approval ..."
           echo "****************************************************************************************"    
-          curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $_GITHUB_TOKEN" -d "{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"  https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/requested_reviewers
+          CURL_RETURN=$(curl -w "\nSTATUS_CODE:%{http_code}\n" \
+            -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer $_GITHUB_TOKEN" \
+            -d "{\"reviewers\":[\"$_GITHUB_FINOPS_REVIEWER_ID\"]}"  \
+            https://api.github.com/repos/fernandorubbo/costimator-github/issues/$_PR_NUMBER/requested_reviewers)
+          echo $CURL_RETURN
+          STATUS_CODE=$([[ $CURL_RETURN =~ [[:space:]]*STATUS_CODE:([0-9]{3}) ]] && echo ${BASH_REMATCH[1]})
+          echo $STATUS_CODE
+          if [ $STATUS_CODE != "200" ] 
+            then
+              echo "Error Requesting FinOps approval!"
+              exit -1
+          fi
+
+
         else
           echo ""
           echo "****************************************************************************************************************"
